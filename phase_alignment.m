@@ -20,7 +20,7 @@ fs=fd*Fs;   %frame size
 lagVector=zeros(refN,1);
 
 %% XCorrelation calc and plot graphs
-i=1
+i=1;
 %for i=1:refN;
     
 % Graph: Segments
