@@ -19,30 +19,32 @@ fs=fd*Fs;   %frame size
 %initialize vectors
 lagVector=zeros(refN,1);
 aligned=zeros(length(test),1);
+xc=cell(1,refN);
+resT=cell(1,refN);
 
-%% XCorrelation calc and plot graphs
-%i=1
-for i=1:refN;
-    
-% Graph: Segments
+
+%% XCorrelation calc
+for i=1:refN
+% Xcorrelation
+[xc{i}, lag]=xcorr(testF{i},refF{i});
+[M,I]=max(abs(xc{i}));
+lagVector(i)=lag(I);
+end
+
+lagVectorO=optlags(lagVector,40);
+
+%% Plot Xcorr segment graphs
+for i=1:refN
 figure
 subplot(3,1,1), plot(refF{i}), ylabel('Ref')
 string=sprintf('Segment number %d',i);
 title(string)
 subplot(3,1,2), plot(testF{i}), ylabel('Test')
-
-%Xcorrelation
-[xc, lag]=xcorr(testF{i},refF{i});
-[M,I]=max(abs(xc));
-lagVector(i)=lag(I);
-
-% Graph Extra: Xcorr
-subplot(3,1,3), plot(lag,abs(xc)), ylabel('XCorr')
-
-resT=cell(1,refN);
+subplot(3,1,3), plot(lag,abs(xc{i})), ylabel('XCorr')
+end
 
 %% Alignment solution 1
-
+for i=1:refN
 % if lagVector(i)>0
 %     
 %     resT{i}=padarray(testF{i}(lagVector(i)+1:end),[lagVector(i) 0],'post');
@@ -52,13 +54,6 @@ resT=cell(1,refN);
 %     resT{i}=padarray(testF{i}(1:end-lagVector(i)-1),[lagVector(i) 0],'pre');
 %     %resR=padarray(refF{1},[lag(I) 0],'post');
 % end
-% Graph: Segments synchronized
-% tR=0:1/Fs:(length(resT{i})-1)/Fs;
-% figure
-% subplot(2,1,1), plot(tR,refF{i},'m'), ylabel('Ref'), %axis([3.2 4.5 -0.6 0.6])
-% string=sprintf('Segment number %d synchronized',i);
-% title(string)
-% subplot(2,1,2), plot(tR,resT{i},'m'), ylabel('Test'), %axis([3.2 4.5 -0.18 0.18])
 
 %% Alignment solution 2
 
@@ -72,8 +67,8 @@ else
 
 end
 
-
 end
+
 
 %% XCorrelation between entire tracks
 
