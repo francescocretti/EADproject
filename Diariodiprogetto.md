@@ -11,4 +11,4 @@ Spiegazione della funzione SEGMENT.M, l'utilità di questa struttura (la cella).
 Abbiamo osservato i risultati di allineamento applicando zero-padding avanti o dietro il segnale basato sui lags ottenuti tramite 
 la cross-correlazione. Per affrontare l'analisi e calcoli sul segnale era più interesante la nuova struttura però come signale finale
 era più semplice creare un vectore e riempirlo poco a poco con i segmenti in uscita. Per cui, nel caso del primo segmento si applica 
-un padding...
+un padding... (qua mi sono fermato perche ho visto bene il codice di align e non mi convince, ho incominciato a cambiarlo ma non ho fatto commit)
