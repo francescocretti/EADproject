@@ -31,7 +31,7 @@ for i=1:refN
 lagVector(i)=lag(I);
 end
 
-lagVectorO=optlags(lagVector,40);
+lagVector=optlags(lagVector,40);
 
 %% Plot Xcorr segment graphs
 for i=1:refN
@@ -58,14 +58,24 @@ for i=1:refN
 %% Alignment solution 2
 
 if i==1
-    resT=padarray(testF{i}(lagVector(i)+1:end),[lagVector(i) 0],'post');
-    aligned(1:(i*fs))=resT;
+    if sign(lagVector(i)) == 1
+        resT=padarray(testF{i}(lagVector(i)+1:end),[lagVector(i) 0],'post');
+        aligned(1:(i*fs))=resT;
+        %Problem: Information loses at the beginin of the segment
+    elseif sign(lagVector(i)) == -1
+        resT=padarray(testF{i},[lagVector(i) 0],'pre');
+        aligned(1:fs+abs(lagVector(i)))=resT;
+        %Problem: length variations in final track (expected length+lagVector(1))
+    else
+        aligned(1:(i*fs))=testF{i};
+    end
 else
     start=((i-1)*fs)-lagVector(i);
     stop=(start+fs)-1;
     aligned(start:stop)=testF{i};
 
 end
+
 
 end
 
@@ -74,11 +84,13 @@ end
 
 [xcT, lagT]=xcorr(test,ref);
 [xcA, lagA]=xcorr(aligned,ref);
+%audiowrite('aligned.wav',aligned,Fs);
+
 % plots
 figure
 title('Cross correlation beteen reference and test (blue) and aligned (red) tracks)')
-subplot(1,2,1), plot(lagT,xcT,'b'), ylabel('XCorr')
-subplot(1,2,2), plot(lagA,xcA,'r'), ylabel('XCorr')
+subplot(2,1,1), plot(lagT,xcT,'b'), ylabel('XCorr')
+subplot(2,1,2), plot(lagA,xcA,'r'), ylabel('XCorr')
 
 
 %% Plots
