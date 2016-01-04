@@ -9,7 +9,7 @@ tr=0:1/Fs:(length(ref)-1)/Fs;
 tt=0:1/Fs:(length(test)-1)/Fs;
 
 %% track segmentation
-fd=4;       %frame duration: 4 seconds
+fd=2;       %frame duration: 4 seconds
 fs=fd*Fs;   %frame size
 
 % Segmentation
@@ -31,7 +31,7 @@ for i=1:refN
 lagVector(i)=lag(I);
 end
 
-lagVector=optlags(lagVector,40);
+lagVector=optlags2(lagVector,40);
 
 %% Plot Xcorr segment graphs
 for i=1:refN
