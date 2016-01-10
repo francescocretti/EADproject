@@ -60,14 +60,15 @@ for i=1:refN
 if i==1
     if sign(lagVector(i)) == 1
         resT=padarray(testF{i}(lagVector(i)+1:end),[lagVector(i) 0],'post');
-        aligned(1:(i*fs))=resT;
+        aligned(1:fs)=resT;
         %Problem: Information loses at the beginin of the segment
     elseif sign(lagVector(i)) == -1
         resT=padarray(testF{i},[lagVector(i) 0],'pre');
         aligned(1:fs+abs(lagVector(i)))=resT;
-        %Problem: length variations in final track (expected length+lagVector(1))
+        %Problem: Information loses at the end of the segment when Segment
+        %i=2 overlaps
     else
-        aligned(1:(i*fs))=testF{i};
+        aligned(1:fs)=testF{i};
     end
 else
     start=((i-1)*fs)-lagVector(i);
