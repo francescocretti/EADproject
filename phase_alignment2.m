@@ -30,9 +30,9 @@ refw=cell(1,2*ws+1);
 %% XCorrelation calc
 
 
-
+%coef=(i-ws):(i+ws);
 for i=1:testN
-    %coef=(i-ws):(i+ws);
+    
     %search segment under the window construction
     %for j=1:2*ws+1
      %   refw{j}=refF{i+coef(j)};
