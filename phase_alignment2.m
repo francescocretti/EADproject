@@ -10,26 +10,34 @@ tr=0:1/Fs:(length(ref)-1)/Fs;
 tt=0:1/Fs:(length(test)-1)/Fs;
 
 %% track segmentation
-fd=2;       %frame duration: 4 seconds
+fd=2;       %frame duration: 2 seconds
 fs=fd*Fs;   %frame size
+ws=1;      %window size <--ws*fs--| fs |--ws*fs-->
 
 % Segmentation
 [refF, refN]=segment(ref,fs,fs);
 [testF, testN]=segment(test,fs,fs);
 
 %initialize vectors
-lagVector=zeros(refN,1);
+lagVector=zeros(testN,1);
 aligned=zeros(length(test),1);
-xc=cell(1,refN);
-resT=cell(1,refN);
+xc=cell(1,testN);
+%resT=cell(1,testN);
 
 
 %% XCorrelation calc
-for i=1:refN
-% Xcorrelation
-[xc{i}, lag]=xcorr(testF{i},refF{i});
-[M,I]=max(abs(xc{i}));
-lagVector(i)=lag(I);
+
+coef=-ws:ws;
+for i=1:testN
+    %search segment under the window construction
+    for j=1:2*ws+1
+        refw{j}=refF{i+coef(j)};
+    end
+    refw=[refw{1:2*ws+1}];
+    % Xcorrelation
+    [xc{i}, lag]=xcorr(testF{i},refw);
+    [M,I]=max(abs(xc{i}));
+    lagVector(i)=lag(I);
 end
 
 lagVector=optlags2(lagVector,40);

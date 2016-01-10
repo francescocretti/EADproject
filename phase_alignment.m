@@ -4,20 +4,24 @@
 [ref, Fs] = audioread('reference2.wav');
 [test, FsT] = audioread('test2.wav');
 
+
+
 % Time vectors
 tr=0:1/Fs:(length(ref)-1)/Fs;
 tt=0:1/Fs:(length(test)-1)/Fs;
 
-%% track segmentation
-fd=2;       %frame duration: 4 seconds
+fd=4;       %frame duration
 fs=fd*Fs;   %frame size
 
+
+%% track segmentation
 % Segmentation
 [refF, refN]=segment(ref,fs,fs);
 [testF, testN]=segment(test,fs,fs);
 
 %initialize vectors
 lagVector=zeros(refN,1);
+M=zeros(refN,1);
 aligned=zeros(length(test),1);
 xc=cell(1,refN);
 resT=cell(1,refN);
@@ -27,7 +31,7 @@ resT=cell(1,refN);
 for i=1:refN
 % Xcorrelation
 [xc{i}, lag]=xcorr(testF{i},refF{i});
-[M,I]=max(abs(xc{i}));
+[M(i),I]=max(abs(xc{i}));
 lagVector(i)=lag(I);
 end
 
@@ -60,8 +64,8 @@ for i=1:refN
 if i==1
     if sign(lagVector(i)) == 1
         resT=padarray(testF{i}(lagVector(i)+1:end),[lagVector(i) 0],'post');
-        aligned(1:fs)=resT;
-        %Problem: Information loses at the beginin of the segment
+        aligned(1:(i*fs))=resT;
+        %Problem: Information losses at the beginin of the segment
     elseif sign(lagVector(i)) == -1
         resT=padarray(testF{i},[lagVector(i) 0],'pre');
         aligned(1:fs+abs(lagVector(i)))=resT;
@@ -98,14 +102,24 @@ subplot(2,1,2), plot(lagA,xcA,'r'), ylabel('XCorr')
 
 % Graph: Ref & Test Signals
 figure
-subplot(3,1,1), plot(tr,ref,'g'), ylabel('Ref')
+subplot(3,1,1), plot(tr,ref,'Color',[0,0.5,0]), ylabel('Ref')
 string=sprintf('Reference & Test (.wav) Signals, with %d seconds segmentation',fd);
 title(string)
-subplot(3,1,2), plot(tt,test,'g'), ylabel('Test')
+subplot(3,1,2), plot(tt,test,'Color',[0,0.5,0]), ylabel('Test')
 %Plot lags found in each segment
 seg_lags=repelem(lagVector,fd);
 seg_lags=seg_lags ./ Fs;
-subplot(3,1,3), plot(1:(i*fd),seg_lags,'g'), xlabel('Time (s)'), ylabel('Lag time')
+subplot(3,1,3), plot(1:(i*fd),seg_lags,'Color',[0,0.5,0]), xlabel('Time (s)'), ylabel('Lag time')
+
+% plot xcorr max values for each segment
+figure
+string=sprintf('Values of xcorr peaks for track segments');
+title(string)
+x=1:i;
+stem(x,M,'filled','Color',[1,0.5,0],'LineWidth',2);
+hold on
+t(1:i)=0.09;
+plot(x,t,'g');
 
 %plot aligned signal
 ta=0:1/Fs:(length(aligned)-1)/Fs;
@@ -114,4 +128,3 @@ subplot(2,1,1), plot(tr,ref,'r'), ylabel('Ref')
 string=sprintf('Reference & Test (.wav) Signals, with %d seconds segmentation',fd);
 title(string)
 subplot(2,1,2), plot(ta,aligned,'r'), ylabel('Test')
-
