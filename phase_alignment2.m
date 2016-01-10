@@ -10,9 +10,9 @@ tr=0:1/Fs:(length(ref)-1)/Fs;
 tt=0:1/Fs:(length(test)-1)/Fs;
 
 %% track segmentation
-fd=2;       %frame duration: 2 seconds
+fd=4;       %frame duration
 fs=fd*Fs;   %frame size
-ws=1;      %window size <--ws*fs--| fs |--ws*fs-->
+ws=1;      %window size parameter <--ws*fs--| fs |--ws*fs-->
 
 % Segmentation
 [refF, refN]=segment(ref,fs,fs);
@@ -20,29 +20,41 @@ ws=1;      %window size <--ws*fs--| fs |--ws*fs-->
 
 %initialize vectors
 lagVector=zeros(testN,1);
+M=zeros(refN,1);
 aligned=zeros(length(test),1);
 xc=cell(1,testN);
+refw=cell(1,2*ws+1);
 %resT=cell(1,testN);
 
 
 %% XCorrelation calc
 
-coef=-ws:ws;
+
+
 for i=1:testN
+    %coef=(i-ws):(i+ws);
     %search segment under the window construction
-    for j=1:2*ws+1
-        refw{j}=refF{i+coef(j)};
+    %for j=1:2*ws+1
+     %   refw{j}=refF{i+coef(j)};
+    %end
+    if ((i-ws)<=0)
+       refw={cat(1,refF{1:(i+ws)})};
+    elseif (i+ws)>refN
+        refw={cat(1,refF{(i-ws):refN})};
+    else
+        refw={cat(1,refF{(i-ws):(i+ws)})};
     end
-    refw=[refw{1:2*ws+1}];
+    
+    searchwindow=cell2mat(refw);
     % Xcorrelation
-    [xc{i}, lag]=xcorr(testF{i},refw);
-    [M,I]=max(abs(xc{i}));
+    [xc{i}, lag]=xcorr(testF{i},searchwindow);
+    [M(i),I]=max(abs(xc{i}));
     lagVector(i)=lag(I);
 end
 
 lagVector=optlags2(lagVector,40);
 
-%% Plot Xcorr segment graphs
+% Plot Xcorr segment graphs
 for i=1:refN
 figure
 subplot(3,1,1), plot(refF{i}), ylabel('Ref')
@@ -123,4 +135,3 @@ subplot(2,1,1), plot(tr,ref,'r'), ylabel('Ref')
 string=sprintf('Reference & Test (.wav) Signals, with %d seconds segmentation',fd);
 title(string)
 subplot(2,1,2), plot(ta,aligned,'r'), ylabel('Test')
-
