@@ -12,7 +12,7 @@ tt=0:1/Fs:(length(test)-1)/Fs;
 %% track segmentation
 fd=3;       %frame duration
 fs=fd*Fs;   %frame size
-ws=1;      %window size parameter <--ws*fs--| fs |--ws*fs-->
+ws=1;       %window size parameter <--ws*fs--| fs |--ws*fs-->
 
 % Segmentation
 [refF, refN]=segment(ref,fs,fs);
@@ -50,7 +50,7 @@ refW=cell(1,testN);
 coef=-ws:ws;
 % Zero-padding at REF borders
 for i=1:ws
-    zp = {zeros(fs,1)};
+    zp = {zeros(fs,1)};     %padding unit
     refF = [zp refF zp];
 end
 for i=1+ws:testN-ws
