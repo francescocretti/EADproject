@@ -1,10 +1,9 @@
 %% Progetto 2016 - Elaborazione del Audio Digitale
+% version 1.0
 
 % Load audio files
 [ref, Fs] = audioread('reference2.wav');
 [test, FsT] = audioread('test2.wav');
-
-
 
 % Time vectors
 tr=0:1/Fs:(length(ref)-1)/Fs;
