@@ -10,9 +10,9 @@ tr=0:1/Fs:(length(ref)-1)/Fs;
 tt=0:1/Fs:(length(test)-1)/Fs;
 
 %% track segmentation
-fd=3;       %frame duration
+fd=2;       %frame duration
 fs=fd*Fs;   %frame size
-ws=1;       %window size parameter <--ws*fs--| fs |--ws*fs-->
+ws=10;       %window size parameter <--ws*fs--| fs |--ws*fs-->
 
 % Segmentation
 [refF, refN]=segment(ref,fs,fs);
@@ -38,7 +38,7 @@ end
 %initialize vectors
 lagVector=zeros(testN,1);
 M=zeros(refN,1);
-aligned=zeros(length(test),1);
+aligned=zeros(fs*testN,1);
 xc=cell(1,testN);
 lag=cell(1,testN);
 refw=cell(1,2*ws+1);
@@ -53,6 +53,7 @@ for i=1:ws
     zp = {zeros(fs,1)};     %padding unit
     refF = [zp refF zp];
 end
+
 for i=1+ws:testN-ws
     %search segment under the window construction
     refw=cell(1,2*ws+1);    %init refw
@@ -67,8 +68,8 @@ for i=1+ws:testN-ws
     lagVector(i)=lag{i}(I);
 end
 
-%lagVector=lagVector(1+ws:end-ws);
 lagVector=optlags2(lagVector,40);
+lagVector=lagVector+2*ws*fs;
 
 %% Plot Xcorr segment graphs
 %{
@@ -82,6 +83,7 @@ subplot(3,1,3), plot(lag{i},abs(xc{i})), ylabel('XCorr')
 end
 %}
 %% Alignment
+
 for i=1+ws:testN-ws
 
 %{
@@ -101,11 +103,23 @@ if i==1+ws
     
 else
     %}
-    if M(i) > 0.1
+    if M(i) > 3
     start=((i-1)*fs)-lagVector(i);
     stop=(start+fs)-1;
     aligned(start:stop)=testF{i};
     end
+    
+    %{ 
+    Super Plots
+    FigHandle = figure('Position', [100, 100, 1049, 895]);
+    subplot(5,1,1), plot(refW{i}), ylabel('Ref')
+    string=sprintf('Segment number %d',i);
+    title(string)
+    subplot(5,1,2), plot(testF{i}), ylabel('Test')
+    subplot(5,1,3), plot(lag{i},abs(xc{i})), ylabel('XCorr')
+    subplot(5,1,4), plot(ta,aligned), axis([start-fs stop+fs inf inf]), ylabel('aligned(start-fs:stop+fs)')
+    subplot(5,1,5), plot(ta,aligned), ylabel('aligned')
+    %}
 end
 %end
 
@@ -130,21 +144,21 @@ subplot(3,1,1), plot(tr,ref,'g'), ylabel('Ref')
 string=sprintf('Reference & Test (.wav) Signals, with %d seconds segmentation',fd);
 title(string)
 subplot(3,1,2), plot(tt,test,'g'), ylabel('Test')
+
+
 %Plot lags found in each segment
 %seg_lags=repelem(lagVector,fd);
 %seg_lags=seg_lags ./ Fs;
 %subplot(3,1,3), plot(1:(i*fd),seg_lags,'g'), xlabel('Time (s)'), ylabel('Lag time')
 
 %plot refF & aligned signal
-refFp=[refF{1:end}];
-refFp=reshape(refFp,[],1);
-trp=0:1/Fs:(length(refFp)-1)/Fs;
-ta=0:1/Fs:(length(aligned)-1)/Fs;
+
 figure
-subplot(2,1,1), plot(trp,refFp,'b'), ylabel('Ref')
+subplot(2,1,1), plot(tr,ref,'b'), ylabel('Ref')
 string=sprintf('Reference & Align (.wav) Signals, with %d seconds segmentation',fd);
 title(string)
+
+ta=0:1/Fs:(length(aligned)-1)/Fs;
 subplot(2,1,2), plot(ta,aligned,'r'), ylabel('Align')
 
-audiowrite('refFINAL.wav',refFp,Fs);
 audiowrite('alignedFINAL.wav',aligned,Fs);

@@ -9,7 +9,7 @@
 tr=0:1/Fs:(length(ref)-1)/Fs;
 tt=0:1/Fs:(length(test)-1)/Fs;
 
-fd=4;       %frame duration
+fd=3;       %frame duration
 fs=fd*Fs;   %frame size
 
 
