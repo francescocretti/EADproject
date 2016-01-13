@@ -10,7 +10,7 @@ tr=0:1/Fs:(length(ref)-1)/Fs;
 tt=0:1/Fs:(length(test)-1)/Fs;
 
 %% track segmentation
-fd=3;       %frame duration
+fd=4;       %frame duration
 fs=fd*Fs;   %frame size
 ws=1;       %window size parameter <--ws*fs--| fs |--ws*fs-->
 
@@ -83,7 +83,7 @@ lagVector=optlags2(lagVector,40);
 
 %lagVector(lagVector<0)=lagVector(lagVector<0)+2*ws*fs;
 %lagVector(lagVector>0)=lagVector(lagVector>0)-2*ws*fs;
-lagVector=lagVector+2*ws*fs;
+%lagVector=lagVector+2*ws*fs;
 
 
 
@@ -129,7 +129,7 @@ else
     %}
 end
 
-aligned=aligned(ws*fs:end);
+aligned=aligned(1+ws*fs:end);
 
 
 
@@ -152,7 +152,7 @@ FigHandle = figure('Position', [100, 100, 949, 705]);
 subplot(3,1,1), plot(trf,refFplot),hold on,plot(trf(((i-1)*fs)+1 : ((i-1)*fs)+length(SWplot) ),SWplot,'r'), ylabel('Ref')
 string=sprintf('Segment number %d',i);
 title(string)
-subplot(3,1,2), plot(ttf,testFplot,'Color',[1 .5 0]), hold on, plot(ttf(((i-1)*fs)+1 : ((i-1)*fs)+length(testF{i}) ),testF{i},'Color', [0 0 .5]), ylabel('Test'),axis([-(ws*fs/Fs) 70-(ws*fs/Fs) -0.3 0.3])
+subplot(3,1,2), plot(ttf,testFplot,'Color',[0,0.5,0]), hold on, plot(ttf(((i-1)*fs)+1 : ((i-1)*fs)+length(testF{i}) ),testF{i},'Color',[1 .5 0]), ylabel('Test'),axis([-(ws*fs/Fs) 70-(ws*fs/Fs) -0.3 0.3])
 subplot(3,1,3), plot(lag{i},abs(xc{i})), ylabel('XCorr')
 end
 
@@ -169,14 +169,14 @@ subplot(2,1,2), plot(lagA,xcA,'r'), ylabel('XCorr')
 
 %% Plot Ref & Test Signals
 figure
-subplot(3,1,1), plot(tr,ref,'g','Color',[0,0.5,0]), ylabel('Ref')
+subplot(3,1,1), plot(tr,ref), ylabel('Ref')
 string=sprintf('Reference & Test (.wav) Signals, with %d seconds segmentation',fd);
 title(string)
 subplot(3,1,2), plot(tt,test,'g','Color',[0,0.5,0]), ylabel('Test')
 %Plot lags found in each segment
 seg_lags=repelem(lagVector,fd);
 seg_lags=seg_lags ./ Fs;
-subplot(3,1,3), plot(1:length(seg_lags),seg_lags,'g','Color',[0,0.5,0]), xlabel('Time (s)'), ylabel('Lag time')
+subplot(3,1,3), plot(1:length(seg_lags),seg_lags,'Color',[1,0,0]), xlabel('Time (s)'), ylabel('Lag time')
 
 
 %% Plot xcorr max values for each segment
@@ -186,17 +186,22 @@ title(string)
 x=1:testN;
 stem(x,M,'filled','Color',[1,0.5,0],'LineWidth',2);
 hold on
+t=1:testN;
 t(1:testN)=3;
 plot(x,t,'g');
 
 
 %% Plot refF & aligned signal
-figure
-subplot(2,1,1), plot(tr,ref,'b'), ylabel('Ref')
+FigHandle = figure('Position', [100, 100, 949, 705]);  
+subplot(3,1,1), plot(tr,ref), ylabel('Ref')
+grid minor
 string=sprintf('Reference & Aligned (.wav) Signals, with %d seconds segmentation',fd);
 title(string)
 ta=0:1/Fs:(length(aligned)-1)/Fs;
-subplot(2,1,2), plot(ta,aligned,'r'), ylabel('Align')
+subplot(3,1,2), plot(ta,aligned,'r'), ylabel('Aligned'), axis([0 60 -0.3 0.2]) 
+grid minor
+subplot(3,1,3), plot(tt,test,'Color',[0,0.5,0]), ylabel('Test'), axis([0 60 -0.3 0.2])
+grid minor
 
 
 %% Export final aligned track
