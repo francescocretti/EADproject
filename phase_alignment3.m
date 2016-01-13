@@ -106,6 +106,7 @@ subplot(3,1,1), plot(trf,refFplot),hold on,plot(trf( ((i-1)*fs)+1 : ((i-1)*fs)+l
 string=sprintf('Segment number %d',i);
 title(string)
 subplot(3,1,2), plot(ttf,testFplot,'Color',[1 .5 0]), hold on, plot(ttf(((i-1)*fs)+1 : ((i-1)*fs)+length(testF{i}) ),testF{i},'Color', [0 0 .5]), ylabel('Test')
+axis([0 70 -0.5 0.5])
 subplot(3,1,3), plot(lag{i},abs(xc{i})), ylabel('XCorr')
 end
 
@@ -167,16 +168,19 @@ subplot(2,1,2), plot(lagA,xcA,'r'), ylabel('XCorr')
 
 % Graph: Ref & Test Signals
 figure
-subplot(3,1,1), plot(tr,ref,'g'), ylabel('Ref')
+subplot(4,1,1), plot(tr,ref,'g'), ylabel('Ref')
 string=sprintf('Reference & Test (.wav) Signals, with %d seconds segmentation',fd);
 title(string)
-subplot(3,1,2), plot(tt,test,'g'), ylabel('Test')
+subplot(4,1,2), plot(tt,test,'g'), ylabel('Test')
 
 
 %Plot lags found in each segment
-%seg_lags=repelem(lagVector,fd);
-%seg_lags=seg_lags ./ Fs;
-%subplot(3,1,3), plot(1:(i*fd),seg_lags,'g'), xlabel('Time (s)'), ylabel('Lag time')
+seg_lags=repelem(lagVector,fd);
+seg_lags=seg_lags ./ Fs;
+subplot(4,1,3), plot(1:length(seg_lags),seg_lags,'g'), xlabel('Time (s)'), ylabel('Lag time')
+
+ta=0:1/Fs:(length(aligned)-1)/Fs;
+subplot(4,1,4), plot(ta,aligned,'r'), ylabel('Align')
 
 %plot refF & aligned signal
 
@@ -188,4 +192,5 @@ title(string)
 ta=0:1/Fs:(length(aligned)-1)/Fs;
 subplot(2,1,2), plot(ta,aligned,'r'), ylabel('Align')
 
+aligned=aligned(fs:end);
 audiowrite('alignedFINAL.wav',aligned,Fs);
