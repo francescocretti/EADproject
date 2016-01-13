@@ -41,8 +41,6 @@ M=zeros(refN,1);
 aligned=zeros(fs*testN,1);
 xc=cell(1,testN);
 lag=cell(1,testN);
-%refw=cell(1,2*ws+1);
-%refW=cell(1,testN);
 
 
 %% XCorrelation calc
@@ -67,9 +65,8 @@ for i=1+ws:refN-ws
         refw{j}=refF{i+coef(j)};
     end
     
-    %build search window
+    %build the search window
     searchwindow{i-ws}={cat(1,refw{1:end})};
-    
     
 end
 
@@ -84,35 +81,15 @@ end
 
 lagVector=optlags2(lagVector,40);
 
-%lagVector=lagVector+2*ws*fs;
+%lagVector(lagVector<0)=lagVector(lagVector<0)+2*ws*fs;
+%lagVector(lagVector>0)=lagVector(lagVector>0)-2*ws*fs;
+lagVector=lagVector+2*ws*fs;
 
-%% Plot Xcorr segment graphs
-refFplot={cat(1,refF{1:end})};
-refFplot=cell2mat(refFplot);
-trf=0:1/Fs:(length(refFplot)-1)/Fs;
-testFplot={cat(1,testF{1:end})};
-testFplot=cell2mat(testFplot);
-%pad=zeros(fs*ws,1);
-%testFplot=[pad; testFplot];
-ttf=0:1/Fs:(length(testFplot)-1)/Fs;
-testNplot=testN;
 
-for i=1:testNplot
-    
-SWplot=cell2mat(searchwindow{i});
-figure
-%subplot(4,1,1), plot(trf,refFplot)
-subplot(3,1,1), plot(trf,refFplot),hold on,plot(trf( ((i-1)*fs)+1 : ((i-1)*fs)+length(SWplot) ),SWplot,'r'), ylabel('Ref')
-string=sprintf('Segment number %d',i);
-title(string)
-subplot(3,1,2), plot(ttf,testFplot,'Color',[1 .5 0]), hold on, plot(ttf(((i-1)*fs)+1 : ((i-1)*fs)+length(testF{i}) ),testF{i},'Color', [0 0 .5]), ylabel('Test')
-axis([0 70 -0.5 0.5])
-subplot(3,1,3), plot(lag{i},abs(xc{i})), ylabel('XCorr')
-end
 
 %% Alignment
 
-for i=1+ws:testN-ws
+for i=1:testN
 
 %{
 if i==1+ws
@@ -136,10 +113,11 @@ else
     stop=(start+fs)-1;
     aligned(start:stop)=testF{i};
     end
-    ta=0:1/Fs:(length(aligned)-1)/Fs;
+    
    
     %{
     %Super Plots
+    ta=0:1/Fs:(length(aligned)-1)/Fs;
     FigHandle = figure('Position', [100, 100, 1049, 895]);
     subplot(4,1,1), plot(refW{i}), ylabel('Ref')
     string=sprintf('Segment number %d',i);
@@ -150,47 +128,76 @@ else
    subplot(5,1,5), plot(ta,aligned), ylabel('aligned')
     %}
 end
-%end
 
-%% XCorrelation between entire tracks
-%{
+aligned=aligned(ws*fs:end);
+
+
+
+
+% ####################### Plots ################################
+
+%% Plot each segment with search window and Xcorrelation graphs
+refFplot={cat(1,refF{1:end})};
+refFplot=cell2mat(refFplot);
+trf=0:1/Fs:(length(refFplot)-1)/Fs;
+testFplot={cat(1,testF{1:end})};
+testFplot=cell2mat(testFplot);
+ttf=0:1/Fs:(length(testFplot)-1)/Fs;
+testNplot=testN;
+
+for i=1:testNplot  
+SWplot=cell2mat(searchwindow{i});
+FigHandle = figure('Position', [100, 100, 949, 705]);  
+%subplot(4,1,1), plot(trf,refFplot)
+subplot(3,1,1), plot(trf,refFplot),hold on,plot(trf(((i-1)*fs)+1 : ((i-1)*fs)+length(SWplot) ),SWplot,'r'), ylabel('Ref')
+string=sprintf('Segment number %d',i);
+title(string)
+subplot(3,1,2), plot(ttf,testFplot,'Color',[1 .5 0]), hold on, plot(ttf(((i-1)*fs)+1 : ((i-1)*fs)+length(testF{i}) ),testF{i},'Color', [0 0 .5]), ylabel('Test'),axis([-(ws*fs/Fs) 70-(ws*fs/Fs) -0.3 0.3])
+subplot(3,1,3), plot(lag{i},abs(xc{i})), ylabel('XCorr')
+end
+
+
+%% Plot XCorrelation between entire tracks
+
 [xcT, lagT]=xcorr(test,ref);
 [xcA, lagA]=xcorr(aligned,ref);
-%audiowrite('aligned.wav',aligned,Fs);
-% plots
 figure
 title('Cross correlation beteen reference and test (blue) and aligned (red) tracks)')
 subplot(2,1,1), plot(lagT,xcT,'b'), ylabel('XCorr')
 subplot(2,1,2), plot(lagA,xcA,'r'), ylabel('XCorr')
-%}
 
-%% Plots
 
-% Graph: Ref & Test Signals
+%% Plot Ref & Test Signals
 figure
-subplot(4,1,1), plot(tr,ref,'g'), ylabel('Ref')
+subplot(3,1,1), plot(tr,ref,'g','Color',[0,0.5,0]), ylabel('Ref')
 string=sprintf('Reference & Test (.wav) Signals, with %d seconds segmentation',fd);
 title(string)
-subplot(4,1,2), plot(tt,test,'g'), ylabel('Test')
-
-
+subplot(3,1,2), plot(tt,test,'g','Color',[0,0.5,0]), ylabel('Test')
 %Plot lags found in each segment
 seg_lags=repelem(lagVector,fd);
 seg_lags=seg_lags ./ Fs;
-subplot(4,1,3), plot(1:length(seg_lags),seg_lags,'g'), xlabel('Time (s)'), ylabel('Lag time')
+subplot(3,1,3), plot(1:length(seg_lags),seg_lags,'g','Color',[0,0.5,0]), xlabel('Time (s)'), ylabel('Lag time')
 
-ta=0:1/Fs:(length(aligned)-1)/Fs;
-subplot(4,1,4), plot(ta,aligned,'r'), ylabel('Align')
 
-%plot refF & aligned signal
+%% Plot xcorr max values for each segment
+figure
+string=sprintf('Values of xcorr peaks for track segments');
+title(string)
+x=1:testN;
+stem(x,M,'filled','Color',[1,0.5,0],'LineWidth',2);
+hold on
+t(1:testN)=3;
+plot(x,t,'g');
 
+
+%% Plot refF & aligned signal
 figure
 subplot(2,1,1), plot(tr,ref,'b'), ylabel('Ref')
-string=sprintf('Reference & Align (.wav) Signals, with %d seconds segmentation',fd);
+string=sprintf('Reference & Aligned (.wav) Signals, with %d seconds segmentation',fd);
 title(string)
-
 ta=0:1/Fs:(length(aligned)-1)/Fs;
 subplot(2,1,2), plot(ta,aligned,'r'), ylabel('Align')
 
-aligned=aligned(fs:end);
+
+%% Export final aligned track
 audiowrite('alignedFINAL.wav',aligned,Fs);
